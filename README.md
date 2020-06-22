@@ -1,8 +1,8 @@
 # Transcolar-App-2020
 
-**Projeto de conclusão da turma 308 da Escola Técnica Mesquita no ano de 2020/1**
+## Projeto de conclusão da turma 308 da Escola Técnica Mesquita no ano de 2020/1
 
-**Trabalho de Conclusão de Curso**
+### Trabalho de Conclusão de Curso
 
    **A turma 308 do Curso Técnico em Informática da Escola Técnica Mesquita está
 sendo “contratada” para a construção de uma plataforma tecnológica descrita abaixo. A
@@ -10,9 +10,9 @@ construção desta plataforma tecnológica será a comprovação de que os aluno
 o conhecimento necessário para serem aprovados nas disciplinas de Trabalho de
 Conclusão e Engenharia de Software.**
 
-**Para o ano de 2020 será iniciada a construção da plataforma descrita abaixo:**
+## Para o ano de 2020 será iniciada a construção da plataforma descrita abaixo:
 
-**Descrição da plataforma:**
+### Descrição da plataforma:
 
   **A plataforma deverá atender o ramo de transporte escolar. Deverá ser criado um
 aplicativo mobile que permita controlar os serviços prestados por empresas deste ramo.
