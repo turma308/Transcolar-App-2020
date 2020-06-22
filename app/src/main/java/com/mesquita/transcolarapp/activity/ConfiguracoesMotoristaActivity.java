@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,11 +23,18 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.mesquita.transcolarapp.R;
+import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.config.Permissao;
 import com.mesquita.transcolarapp.config.Util;
 import com.mesquita.transcolarapp.model.Motorista;
 import com.mesquita.transcolarapp.model.Usuario;
+
+import java.io.ByteArrayOutputStream;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -38,6 +46,8 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
     private EditText        telefone;
     private RadioGroup      campoSexo;
     private CircleImageView fotoPerfil;
+
+    private StorageReference storageReference;
 
     private Usuario mtr;
 
@@ -56,6 +66,8 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle("Configurações");
 
+        storageReference = ConfiguracaoFirebase.getFirebaseStorage();
+
         //Validar permissões
         Permissao.validarPermissoes(permissoes, this, 1);
 
@@ -73,6 +85,28 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
             endereco.setText(mtr.getEndereco());
             CPF.setText(mtr.getCpf());
             telefone.setText(mtr.getTelefone());
+
+            //TODO Aqui corrigir atribuição do sexo.
+
+            //Recupera a foto do usuário
+            StorageReference imagemRef = storageReference
+                    .child("imagens")
+                    .child(mtr.getId() + ".jpeg");
+            final long ONE_MEGABYTE = 1024 * 1024;
+            imagemRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    fotoPerfil.setImageBitmap(Bitmap.createScaledBitmap(bmp, fotoPerfil.getWidth(),
+                            fotoPerfil.getHeight(), false));
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    fotoPerfil.setImageResource(R.drawable.padrao);
+                }
+            });
+
         }
     }
 
@@ -102,12 +136,38 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                     case SELECAO_GALERIA:
                         Uri uriImagemSelec = data.getData();
 //                        ImageDecoder.Source source = ImageDecoder.createSource(getContentResolver(), uriImagemSelec);
-//                        imagem = ImageDecoder.decodeBitmap(source);
+//                       imagem = ImageDecoder.decodeBitmap(source);
                         break;
                 }
 
                 if (imagem != null){
                     fotoPerfil.setImageBitmap(imagem);
+
+                    //Converter os dados da imagem para armazenar no Firebase
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    imagem.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                    byte[] dadosImagem = baos.toByteArray();
+
+                    //Salvar imagem no Firebase
+                    StorageReference imagemRef = storageReference
+                            .child("imagens")
+                            .child(mtr.getId() + ".jpeg");
+                    UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
+                    uploadTask.addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                                    "Erro ao fazer upload da foto.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                                    "Foto armazenada com sucesso.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
                 }
 
             } catch (Exception e){
