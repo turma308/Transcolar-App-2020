@@ -1,20 +1,20 @@
 package com.mesquita.transcolarapp.activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
 import com.google.maps.android.PolyUtil;
 import com.mesquita.transcolarapp.R;
+import com.mesquita.transcolarapp.config.Permissao;
 import com.mesquita.transcolarapp.factory.GeocodingFactory;
 import com.mesquita.transcolarapp.factory.RouteFactory;
 import com.mesquita.transcolarapp.parser.DataParser;
@@ -82,7 +83,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }, 50);
                     //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myNearestLocation, mMap.getCameraPosition().zoom));
                 }
-
             }
         }
 
@@ -115,11 +115,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Check and try to request permission
         //Poorly implemented
         //Made because Android Studio wanted
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        Permissao.validarPermissoes(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, this, 1);
+        /*if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
             }
-        }
+        }*/
 
         setContentView(R.layout.activity_maps);
         findViewById(R.id.route_btn).setOnClickListener(new View.OnClickListener() {
@@ -129,27 +132,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 v.setEnabled(false);
             }
         });
+    }
 
-        String url = GeocodingFactory.generateGeocodingUrl("91360-001", 77, LocationUtil.getCurrentLocation(this), getString(R.string.google_maps_key));
-        try {
-            //Get json from API
-            String response = new NetworkUtils().execute(url).get();
-            GeocodingParser parser = new GeocodingParser();
-            JSONObject jsonObject = new JSONObject(response);
-            LatLng location = parser.parse(jsonObject);
-        } catch (Exception e) {
+    private void alertaValidacaoPermissao() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Permissões Negadas");
+        builder.setMessage("Para utilizar o app é necessário aceitar as permissões de localização.");
+        builder.setCancelable(false);
+        builder.setPositiveButton("Confirmar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+            }
+        });
 
-        }
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 
-        //Obtain the LocationManager and get notified of location updates
-        LocationManager manager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
-        Criteria mCriteria = new Criteria();
-        String bestProvider = String.valueOf(manager.getBestProvider(mCriteria, true));
-        manager.requestLocationUpdates(bestProvider, 5, 1, locationListener);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED)
+            {
+                alertaValidacaoPermissao();
+            }
+            else {
+                String url = GeocodingFactory.generateGeocodingUrl("91360-001", 77, LocationUtil.getCurrentLocation(this), getString(R.string.google_maps_key));
+                try {
+                    //Get json from API
+                    String response = new NetworkUtils().execute(url).get();
+                    GeocodingParser parser = new GeocodingParser();
+                    JSONObject jsonObject = new JSONObject(response);
+                    LatLng location = parser.parse(jsonObject);
+                } catch (Exception e)
+                {
+
+                }
+
+                //Obtain the LocationManager and get notified of location updates
+                LocationManager manager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
+                Criteria mCriteria = new Criteria();
+                String bestProvider = String.valueOf(manager.getBestProvider(mCriteria, true));
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                manager.requestLocationUpdates(bestProvider, 5, 1, locationListener);
+
+                // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+                mapFragment.getMapAsync(this);
+            }
+
     }
 
     @Override
@@ -159,13 +194,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Move camera to current user location
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -264,18 +292,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.setMyLocationEnabled(false);
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLngLocation, mMap.getCameraPosition().zoom));
                 hasStartedRoute = true;
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-        catch (ExecutionException e)
-        {
+        } catch (ExecutionException e) {
             e.printStackTrace();
-        }
-        catch (InterruptedException e)
-        {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
