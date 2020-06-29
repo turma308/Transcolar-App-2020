@@ -46,7 +46,7 @@ public class TranscolarMessagingService extends FirebaseMessagingService {
         NotificationCompat.Builder notif = new NotificationCompat.Builder(this, canal)
                 .setContentTitle(titulo)
                 .setContentText(corpo)
-                .setSmallIcon(R.drawable.ic_camera_black_24dp)
+                .setSmallIcon(R.drawable.ic_notifi_transcolar)
                 .setSound(uriSom)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
