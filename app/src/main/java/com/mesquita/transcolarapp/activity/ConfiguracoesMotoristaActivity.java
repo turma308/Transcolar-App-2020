@@ -136,7 +136,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                     case SELECAO_GALERIA:
                         Uri uriImagemSelec = data.getData();
 //                        ImageDecoder.Source source = ImageDecoder.createSource(getContentResolver(), uriImagemSelec);
-//                       imagem = ImageDecoder.decodeBitmap(source);
+//                        imagem = ImageDecoder.decodeBitmap(source);
                         break;
                 }
 
