@@ -23,6 +23,7 @@ import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.config.Util;
 import com.mesquita.transcolarapp.model.Motorista;
+import com.mesquita.transcolarapp.model.Responsavel;
 import com.mesquita.transcolarapp.model.Usuario;
 
 public class CadastroActivity extends AppCompatActivity {
@@ -101,8 +102,10 @@ public class CadastroActivity extends AppCompatActivity {
                                         Motorista m = new Motorista();
                                         m.setId(u.getId());
                                         m.salvar();
-                                    } else if (u.getTipoUsuario().equals("aluno")) {
-                                        //TODO Implementar
+                                    } else if (u.getTipoUsuario().equals("responsavel")) {
+                                        Responsavel r = new Responsavel();
+                                        r.setId(u.getId());
+                                        r.salvar();
                                     } else {
                                         //TODO Implementar
                                     }

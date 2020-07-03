@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -22,7 +21,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.StorageReference;
@@ -31,25 +29,28 @@ import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.config.Permissao;
 import com.mesquita.transcolarapp.config.Util;
-import com.mesquita.transcolarapp.model.Motorista;
+import com.mesquita.transcolarapp.model.Responsavel;
 import com.mesquita.transcolarapp.model.Usuario;
 
 import java.io.ByteArrayOutputStream;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
+public class ConfiguracoesResponsavelActivity extends AppCompatActivity {
 
     private EditText        nome;
     private EditText        endereco;
     private EditText        CPF;
     private EditText        telefone;
+    private EditText        cep;
+    private EditText        rg;
     private RadioGroup      campoSexo;
     private CircleImageView fotoPerfil;
 
     private StorageReference storageReference;
 
-    private Usuario mtr;
+    private Usuario rsp;
+    private Responsavel resp;
 
     private static final int SELECAO_CAMERA = 100;
     private static final int SELECAO_GALERIA = 200;
@@ -62,9 +63,9 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_configuracoes_motorista);
+        setContentView(R.layout.activity_configuracoes_responsavel);
 
-        getSupportActionBar().setTitle("Configurações - Motorista");
+        getSupportActionBar().setTitle("Configurações - Responsável");
 
         storageReference = ConfiguracaoFirebase.getFirebaseStorage();
 
@@ -75,23 +76,25 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         endereco   = findViewById(R.id.etEndereco);
         CPF        = findViewById(R.id.etCPF);
         telefone   = findViewById(R.id.etTelefone);
+        cep   = findViewById(R.id.etCEP);
+        rg   = findViewById(R.id.etRG);
         campoSexo  = findViewById(R.id.rdGroupSexo);
         fotoPerfil = findViewById(R.id.civFotoPerfil);
 
         //GET EXTRA...
-        mtr = (Usuario) getIntent().getSerializableExtra("usr");
-        if (mtr != null){
-            nome.setText(mtr.getNome());
-            endereco.setText(mtr.getEndereco());
-            CPF.setText(mtr.getCpf());
-            telefone.setText(mtr.getTelefone());
+        rsp = (Usuario) getIntent().getSerializableExtra("usr");
+        if (rsp != null){
+            nome.setText(rsp.getNome());
+            endereco.setText(rsp.getEndereco());
+            CPF.setText(rsp.getCpf());
+            telefone.setText(rsp.getTelefone());
 
             //TODO Aqui corrigir atribuição do sexo.
 
             //Recupera a foto do usuário
             StorageReference imagemRef = storageReference
                     .child("imagens")
-                    .child(mtr.getId() + ".jpeg");
+                    .child(rsp.getId() + ".jpeg");
             final long ONE_MEGABYTE = 1024 * 1024;
             imagemRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override
@@ -151,19 +154,19 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                     //Salvar imagem no Firebase
                     StorageReference imagemRef = storageReference
                             .child("imagens")
-                            .child(mtr.getId() + ".jpeg");
+                            .child(rsp.getId() + ".jpeg");
                     UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
                     uploadTask.addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                            Toast.makeText(ConfiguracoesResponsavelActivity.this,
                                     "Erro ao fazer upload da foto.",
                                     Toast.LENGTH_LONG).show();
                         }
                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                            Toast.makeText(ConfiguracoesResponsavelActivity.this,
                                     "Foto armazenada com sucesso.",
                                     Toast.LENGTH_LONG).show();
                         }
@@ -192,11 +195,13 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void gravarMotorista(View view) {
+    public void gravarResponsavel(View view) {
         String textoNome              = nome.getText().toString();
         String textoEndereco          = endereco.getText().toString();
         String textoCPF               = CPF.getText().toString();
         String textoTelefone          = telefone.getText().toString();
+        String textoCEP               = cep.getText().toString();
+        String textoRG                = rg.getText().toString();
         int itemRadioGroupSelecionado = campoSexo.getCheckedRadioButtonId();
 
 
@@ -209,44 +214,58 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
                     if(!isCampoVazio(textoTelefone)){
 
-                        if (itemRadioGroupSelecionado != -1){
+                        if(!isCampoVazio(textoCEP)) {
 
-                            RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
-                            String textoSexo =  rbSexoSelecioando.getText().toString();
+                            if(!isCampoVazio(textoRG)) {
 
-                            mtr.setNome(textoNome);
-                            mtr.setEndereco(textoEndereco);
-                            mtr.setCpf(textoCPF);
-                            mtr.setTelefone(textoTelefone);
-                            mtr.setSexo(textoSexo);
+                                if (itemRadioGroupSelecionado != -1) {
 
-                            mtr.salvar();
+                                    RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
+                                    String textoSexo = rbSexoSelecioando.getText().toString();
 
-                            Util.esconderTeclado(view);
+                                    rsp.setNome(textoNome);
+                                    rsp.setEndereco(textoEndereco);
+                                    rsp.setCpf(textoCPF);
+                                    rsp.setTelefone(textoTelefone);
+                                    resp.setCEP(textoCEP);
+                                    resp.setRG(textoRG);
+                                    rsp.setSexo(textoSexo);
 
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
-                                    "Dados salvos com sucesso!",
-                                    Toast.LENGTH_SHORT).show();
+                                    rsp.salvar();
 
-                            }else{
-                                    Toast.makeText(ConfiguracoesMotoristaActivity.this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
+                                    Util.esconderTeclado(view);
+
+                                    Toast.makeText(ConfiguracoesResponsavelActivity.this,
+                                            "Dados salvos com sucesso!",
+                                            Toast.LENGTH_SHORT).show();
+
+                                } else {
+                                    Toast.makeText(ConfiguracoesResponsavelActivity.this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(ConfiguracoesResponsavelActivity.this, "Preencha o RG", Toast.LENGTH_SHORT).show();
                             }
+
+                        } else {
+                            Toast.makeText(ConfiguracoesResponsavelActivity.this, "Preencha o CEP", Toast.LENGTH_SHORT).show();
+                        }
+
                     }else{
-                                Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o telefone", Toast.LENGTH_SHORT).show();
-                                telefone.requestFocus();
+                        Toast.makeText(ConfiguracoesResponsavelActivity.this, "Preencha o telefone", Toast.LENGTH_SHORT).show();
+                        telefone.requestFocus();
                     }
                 }else{
-                        Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o CPF", Toast.LENGTH_SHORT).show();
-                        CPF.requestFocus();
+                    Toast.makeText(ConfiguracoesResponsavelActivity.this, "Preencha o CPF", Toast.LENGTH_SHORT).show();
+                    CPF.requestFocus();
                 }
 
             } else {
-                    Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o endereço", Toast.LENGTH_SHORT).show();
-                    endereco.requestFocus();
+                Toast.makeText(ConfiguracoesResponsavelActivity.this, "Preencha o endereço", Toast.LENGTH_SHORT).show();
+                endereco.requestFocus();
             }
 
         } else {
-            Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o Nome", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ConfiguracoesResponsavelActivity.this, "Preencha o Nome", Toast.LENGTH_SHORT).show();
             nome.requestFocus();
         }
     }

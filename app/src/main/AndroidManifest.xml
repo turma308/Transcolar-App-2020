@@ -28,10 +28,13 @@
 
         <activity
             android:name=".activity.ConfiguracoesActivity"
-            android:parentActivityName=".activity.PrincipalActivity"></activity>
+            android:parentActivityName=".activity.PrincipalActivity"/>
         <activity
             android:name=".activity.ConfiguracoesMotoristaActivity"
-            android:parentActivityName=".activity.PrincipalActivity"></activity>
+            android:parentActivityName=".activity.PrincipalActivity"/>
+        <activity
+            android:name=".activity.ConfiguracoesResponsavelActivity"
+            android:parentActivityName=".activity.PrincipalActivity"/>
         <activity android:name=".activity.PrincipalActivity" />
         <activity
             android:name=".activity.CadastroActivity"

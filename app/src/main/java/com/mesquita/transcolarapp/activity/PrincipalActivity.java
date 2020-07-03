@@ -120,6 +120,8 @@ public class PrincipalActivity extends AppCompatActivity {
         Intent i;
         if (usr.getTipoUsuario().equals("motorista")){
             i = new Intent(this, ConfiguracoesMotoristaActivity.class);
+        } else if (usr.getTipoUsuario().equals("responsavel")) {
+            i = new Intent(this, ConfiguracoesResponsavelActivity.class);
         } else {
             i = new Intent(this, ConfiguracoesActivity.class);
         }
