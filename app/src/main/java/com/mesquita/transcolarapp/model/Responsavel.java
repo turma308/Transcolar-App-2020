@@ -4,8 +4,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 
 public class Responsavel extends Usuario {
-    private String CEP = "1234567890";
-    private String RG = "146581551";
+    private String CEP;
+    private String RG;
 
     public Responsavel() {
         super();
