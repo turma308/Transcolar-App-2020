@@ -42,4 +42,17 @@ public class LocationUtil
             return null;
         }
     }
+
+    public static Float findDistance(LatLng source, LatLng destination)
+    {
+        Location srcLoc = new Location("srcLoc");
+        srcLoc.setLatitude(source.latitude);
+        srcLoc.setLongitude(source.longitude);
+
+        Location destLoc = new Location("destLoc");
+        destLoc.setLatitude(destination.latitude);
+        destLoc.setLongitude(destination.longitude);
+
+        return srcLoc.distanceTo(destLoc);
+    }
 }

@@ -1,7 +1,12 @@
 package com.mesquita.transcolarapp.activity;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,21 +15,29 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.model.Motorista;
 import com.mesquita.transcolarapp.model.Usuario;
+import com.mesquita.transcolarapp.services.TrackUserLocationService;
 
 public class PrincipalActivity extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private TextView ola;
     private Usuario usr;
     private Motorista mot;
+    private TrackUserLocationService mService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,13 +55,26 @@ public class PrincipalActivity extends AppCompatActivity {
 
     public void buscarUsuario(){
         DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
-        DatabaseReference usuarioRef = firebaseRef.child("usuarios").child(usr.getId());
+        final DatabaseReference usuarioRef = firebaseRef.child("usuarios").child(usr.getId());
 
         usuarioRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 usr = dataSnapshot.getValue(Usuario.class);
                 ola.setText("Olá, " + usr.getNome());
+
+
+                //Primeira implementação
+                //Utilizado para testes já que ainda não existe um método que inicia a ida da criança até a escola
+                if(usr.getTipoUsuario().equals("aluno"))
+                {
+                    Intent intent = new Intent(getApplicationContext(), TrackUserLocationService.class);
+                    Bundle b = new Bundle();
+                    LatLng mesquitaSchoolLocation = new LatLng(-30.011553, -51.153241);
+                    b.putParcelable("schoolLocation", mesquitaSchoolLocation);
+                    intent.putExtras(b);
+                    bindService(intent, connection, Context.BIND_AUTO_CREATE);
+                }
             }
 
             @Override
@@ -57,6 +83,23 @@ public class PrincipalActivity extends AppCompatActivity {
             }
         });
     }
+
+    //Realiza a conexão do serviço quando necessário.
+    //Futuramente deve ser movido para uma classe especifica de ações sobre o aluno
+    private ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service)
+        {
+            TrackUserLocationService.TrackUserLocationServiceBinder binder = (TrackUserLocationService.TrackUserLocationServiceBinder) service;
+            mService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0)
+        {
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

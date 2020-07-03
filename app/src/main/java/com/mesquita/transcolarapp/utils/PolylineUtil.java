@@ -22,7 +22,7 @@ public class PolylineUtil
         //Loop for each point and measure the distance
         for(LatLng point : points)
         {
-            double distance = findDistance(position, point);
+            double distance = LocationUtil.findDistance(position, point);
             //Check if distance is less than the minimum
             if(distance < minimumDistance || minimumDistance == -1)
             {
@@ -36,7 +36,7 @@ public class PolylineUtil
     //Create a new list of points that are 0.1 meter apart
     public static List<LatLng> splitPathIntoPoints(LatLng source, LatLng destination)
     {
-        Float distance = findDistance(source, destination);
+        Float distance = LocationUtil.findDistance(source, destination);
 
         List<LatLng> splitPoints = new ArrayList<>();
         splitPoints.add(source);
@@ -63,7 +63,7 @@ public class PolylineUtil
                 injectionIndex += 2;
             }
 
-            distance = findDistance(splitPoints.get(0), splitPoints.get(1));
+            distance = LocationUtil.findDistance(splitPoints.get(0), splitPoints.get(1));
         }
 
         return splitPoints;
@@ -86,20 +86,6 @@ public class PolylineUtil
         y3 = toDegrees((y3 + 540) % 360 - 180);
 
         return new LatLng(x3, y3);
-    }
-
-    //This Method finds the distance between two given points
-    public static Float findDistance(LatLng source, LatLng destination)
-    {
-        Location srcLoc = new Location("srcLoc");
-        srcLoc.setLatitude(source.latitude);
-        srcLoc.setLongitude(source.longitude);
-
-        Location destLoc = new Location("destLoc");
-        destLoc.setLatitude(destination.latitude);
-        destLoc.setLongitude(destination.longitude);
-
-        return srcLoc.distanceTo(destLoc);
     }
 
 }

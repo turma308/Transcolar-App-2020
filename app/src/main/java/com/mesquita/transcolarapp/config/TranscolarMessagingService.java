@@ -30,6 +30,7 @@ public class TranscolarMessagingService extends FirebaseMessagingService {
 
             Log.i("Notificacao", "Titulo: " + titulo + " Corpo: " + corpo);
         }
+        
     }
 
     private void mostrarNotificacao(String titulo, String corpo){
