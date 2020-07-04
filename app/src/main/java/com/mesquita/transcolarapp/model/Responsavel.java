@@ -15,8 +15,8 @@ public class Responsavel extends Usuario {
         return CEP;
     }
 
-    public void setCEP(String cnh) {
-        this.CEP = CEP;
+    public void setCEP(String cep) {
+        this.CEP = cep;
     }
 
     public String getRG() {

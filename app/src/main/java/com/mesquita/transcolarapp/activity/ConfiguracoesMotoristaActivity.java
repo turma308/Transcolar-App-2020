@@ -32,6 +32,7 @@ import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.config.Permissao;
 import com.mesquita.transcolarapp.config.Util;
 import com.mesquita.transcolarapp.model.Motorista;
+import com.mesquita.transcolarapp.model.Responsavel;
 import com.mesquita.transcolarapp.model.Usuario;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +50,8 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
     private StorageReference storageReference;
 
-    private Usuario mtr;
+    private Usuario usr;
+    private Motorista mtr;
 
     private static final int SELECAO_CAMERA = 100;
     private static final int SELECAO_GALERIA = 200;
@@ -79,19 +81,22 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         fotoPerfil = findViewById(R.id.civFotoPerfil);
 
         //GET EXTRA...
-        mtr = (Usuario) getIntent().getSerializableExtra("usr");
-        if (mtr != null){
-            nome.setText(mtr.getNome());
-            endereco.setText(mtr.getEndereco());
-            CPF.setText(mtr.getCpf());
-            telefone.setText(mtr.getTelefone());
+        usr = (Usuario) getIntent().getSerializableExtra("usr");
+        if (usr != null){
+            nome.setText(usr.getNome());
+            endereco.setText(usr.getEndereco());
+            CPF.setText(usr.getCpf());
+            telefone.setText(usr.getTelefone());
 
             //TODO Aqui corrigir atribuição do sexo.
+
+            mtr = new Motorista();
+            mtr.setId(usr.getId());
 
             //Recupera a foto do usuário
             StorageReference imagemRef = storageReference
                     .child("imagens")
-                    .child(mtr.getId() + ".jpeg");
+                    .child(usr.getId() + ".jpeg");
             final long ONE_MEGABYTE = 1024 * 1024;
             imagemRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override
@@ -151,7 +156,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                     //Salvar imagem no Firebase
                     StorageReference imagemRef = storageReference
                             .child("imagens")
-                            .child(mtr.getId() + ".jpeg");
+                            .child(usr.getId() + ".jpeg");
                     UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
                     uploadTask.addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -214,13 +219,17 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                             RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
                             String textoSexo =  rbSexoSelecioando.getText().toString();
 
-                            mtr.setNome(textoNome);
-                            mtr.setEndereco(textoEndereco);
-                            mtr.setCpf(textoCPF);
-                            mtr.setTelefone(textoTelefone);
-                            mtr.setSexo(textoSexo);
+                            usr.setNome(textoNome);
+                            usr.setEndereco(textoEndereco);
+                            usr.setCpf(textoCPF);
+                            usr.setTelefone(textoTelefone);
+                            usr.setSexo(textoSexo);
 
+                            mockupClientes();
+
+                            usr.salvar();
                             mtr.salvar();
+
 
                             Util.esconderTeclado(view);
 
@@ -249,6 +258,16 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
             Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o Nome", Toast.LENGTH_SHORT).show();
             nome.requestFocus();
         }
+    }
+
+    private void mockupClientes() {
+        Responsavel r = new Responsavel();
+        r.setId("stfqoPUunJWUdVpsGTGEQz4buC43");
+        mtr.getClientes().add(r);
+
+        r = new Responsavel();
+        r.setId("vE3PIHtJhthVN8gdBMBhPhsQ1UH3");
+        mtr.getClientes().add(r);
     }
 
     private boolean isCampoVazio(String valor){

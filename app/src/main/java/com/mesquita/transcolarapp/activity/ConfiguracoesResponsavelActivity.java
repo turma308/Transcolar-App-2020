@@ -23,6 +23,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.mesquita.transcolarapp.R;
@@ -49,7 +53,7 @@ public class ConfiguracoesResponsavelActivity extends AppCompatActivity {
 
     private StorageReference storageReference;
 
-    private Usuario rsp;
+    private Usuario usr;
     private Responsavel resp;
 
     private static final int SELECAO_CAMERA = 100;
@@ -82,19 +86,23 @@ public class ConfiguracoesResponsavelActivity extends AppCompatActivity {
         fotoPerfil = findViewById(R.id.civFotoPerfil);
 
         //GET EXTRA...
-        rsp = (Usuario) getIntent().getSerializableExtra("usr");
-        if (rsp != null){
-            nome.setText(rsp.getNome());
-            endereco.setText(rsp.getEndereco());
-            CPF.setText(rsp.getCpf());
-            telefone.setText(rsp.getTelefone());
+        usr = (Usuario) getIntent().getSerializableExtra("usr");
+        if (usr != null){
+            nome.setText(usr.getNome());
+            endereco.setText(usr.getEndereco());
+            CPF.setText(usr.getCpf());
+            telefone.setText(usr.getTelefone());
 
             //TODO Aqui corrigir atribuição do sexo.
+
+
+            //Instancia um Responsável
+            resp = buscaResponsavel(usr.getId());
 
             //Recupera a foto do usuário
             StorageReference imagemRef = storageReference
                     .child("imagens")
-                    .child(rsp.getId() + ".jpeg");
+                    .child(usr.getId() + ".jpeg");
             final long ONE_MEGABYTE = 1024 * 1024;
             imagemRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                 @Override
@@ -111,6 +119,29 @@ public class ConfiguracoesResponsavelActivity extends AppCompatActivity {
             });
 
         }
+    }
+
+    private Responsavel buscaResponsavel(String id) {
+        resp = new Responsavel();
+        resp.setId(usr.getId());
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
+        final DatabaseReference responsavelRef = firebaseRef.child("responsaveis").child(id);
+
+        responsavelRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                resp = dataSnapshot.getValue(Responsavel.class);
+                cep.setText(resp.getCEP());
+                rg.setText(resp.getRG());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        return resp;
     }
 
     @Override
@@ -154,7 +185,7 @@ public class ConfiguracoesResponsavelActivity extends AppCompatActivity {
                     //Salvar imagem no Firebase
                     StorageReference imagemRef = storageReference
                             .child("imagens")
-                            .child(rsp.getId() + ".jpeg");
+                            .child(usr.getId() + ".jpeg");
                     UploadTask uploadTask = imagemRef.putBytes(dadosImagem);
                     uploadTask.addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -223,15 +254,16 @@ public class ConfiguracoesResponsavelActivity extends AppCompatActivity {
                                     RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
                                     String textoSexo = rbSexoSelecioando.getText().toString();
 
-                                    rsp.setNome(textoNome);
-                                    rsp.setEndereco(textoEndereco);
-                                    rsp.setCpf(textoCPF);
-                                    rsp.setTelefone(textoTelefone);
+                                    usr.setNome(textoNome);
+                                    usr.setEndereco(textoEndereco);
+                                    usr.setCpf(textoCPF);
+                                    usr.setTelefone(textoTelefone);
                                     resp.setCEP(textoCEP);
                                     resp.setRG(textoRG);
-                                    rsp.setSexo(textoSexo);
+                                    usr.setSexo(textoSexo);
 
-                                    rsp.salvar();
+                                    usr.salvar();
+                                    resp.salvar();
 
                                     Util.esconderTeclado(view);
 
