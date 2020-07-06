@@ -45,6 +45,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
     private EditText        endereco;
     private EditText        CPF;
     private EditText        telefone;
+    private EditText        CEP;
     private RadioGroup      campoSexo;
     private CircleImageView fotoPerfil;
 
@@ -77,6 +78,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         endereco   = findViewById(R.id.etEndereco);
         CPF        = findViewById(R.id.etCPF);
         telefone   = findViewById(R.id.etTelefone);
+        CEP        = findViewById(R.id.etCEP);
         campoSexo  = findViewById(R.id.rdGroupSexo);
         fotoPerfil = findViewById(R.id.civFotoPerfil);
 
@@ -87,6 +89,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
             endereco.setText(usr.getEndereco());
             CPF.setText(usr.getCpf());
             telefone.setText(usr.getTelefone());
+            CEP.setText(mtr.getCep());
 
             //TODO Aqui corrigir atribuição do sexo.
 
@@ -202,6 +205,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         String textoEndereco          = endereco.getText().toString();
         String textoCPF               = CPF.getText().toString();
         String textoTelefone          = telefone.getText().toString();
+        String textoCEP               = CEP.getText().toString();
         int itemRadioGroupSelecionado = campoSexo.getCheckedRadioButtonId();
 
 
@@ -214,35 +218,42 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
                     if(!isCampoVazio(textoTelefone)){
 
-                        if (itemRadioGroupSelecionado != -1){
+                        if(!isCampoVazio(textoCEP)){
 
-                            RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
-                            String textoSexo =  rbSexoSelecioando.getText().toString();
+                                if (itemRadioGroupSelecionado != -1){
 
-                            usr.setNome(textoNome);
-                            usr.setEndereco(textoEndereco);
-                            usr.setCpf(textoCPF);
-                            usr.setTelefone(textoTelefone);
-                            usr.setSexo(textoSexo);
+                                    RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
+                                    String textoSexo =  rbSexoSelecioando.getText().toString();
 
-                            mockupClientes();
+                                    usr.setNome(textoNome);
+                                    usr.setEndereco(textoEndereco);
+                                    usr.setCpf(textoCPF);
+                                    usr.setTelefone(textoTelefone);
+                                    usr.setSexo(textoSexo);
+                                    mtr.setCep(textoCEP);
 
-                            usr.salvar();
-                            mtr.salvar();
+                                    mockupClientes();
+
+                                    usr.salvar();
+                                    mtr.salvar();
 
 
-                            Util.esconderTeclado(view);
+                                    Util.esconderTeclado(view);
 
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
-                                    "Dados salvos com sucesso!",
-                                    Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                                            "Dados salvos com sucesso!",
+                                            Toast.LENGTH_SHORT).show();
 
-                            }else{
+                                }else{
                                     Toast.makeText(ConfiguracoesMotoristaActivity.this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
-                            }
+                                }
+                        }else{
+                            Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o CEP", Toast.LENGTH_SHORT).show();
+                            CEP.requestFocus();
+                        }
                     }else{
-                                Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o telefone", Toast.LENGTH_SHORT).show();
-                                telefone.requestFocus();
+                        Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o telefone", Toast.LENGTH_SHORT).show();
+                        telefone.requestFocus();
                     }
                 }else{
                         Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o CPF", Toast.LENGTH_SHORT).show();

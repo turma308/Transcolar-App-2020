@@ -8,6 +8,7 @@ import java.util.List;
 
 public class Motorista extends Usuario {
     private String cnh = "1234567890";
+    private String cep;
     private List<Responsavel> clientes = new ArrayList<>();
 
     public Motorista() {
@@ -20,6 +21,14 @@ public class Motorista extends Usuario {
 
     public void setCnh(String cnh) {
         this.cnh = cnh;
+    }
+
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
     }
 
     public List<Responsavel> getClientes() {
