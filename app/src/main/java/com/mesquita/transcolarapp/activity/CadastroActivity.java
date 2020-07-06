@@ -22,6 +22,7 @@ import com.google.firebase.iid.InstanceIdResult;
 import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.config.Util;
+import com.mesquita.transcolarapp.model.Aluno;
 import com.mesquita.transcolarapp.model.Motorista;
 import com.mesquita.transcolarapp.model.Responsavel;
 import com.mesquita.transcolarapp.model.Usuario;
@@ -107,7 +108,9 @@ public class CadastroActivity extends AppCompatActivity {
                                         r.setId(u.getId());
                                         r.salvar();
                                     } else {
-                                        //TODO Implementar
+                                        Aluno a = new Aluno();
+                                        a.setId(u.getId());
+                                        a.salvar();
                                     }
 
                                     Toast.makeText(CadastroActivity.this,

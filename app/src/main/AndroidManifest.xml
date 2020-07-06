@@ -35,6 +35,9 @@
         <activity
             android:name=".activity.ConfiguracoesResponsavelActivity"
             android:parentActivityName=".activity.PrincipalActivity"/>
+        <activity
+            android:name=".activity.ConfiguracoesAlunoActivity"
+            android:parentActivityName=".activity.PrincipalActivity"/>
         <activity android:name=".activity.PrincipalActivity" />
         <activity
             android:name=".activity.CadastroActivity"

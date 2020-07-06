@@ -123,7 +123,7 @@ public class PrincipalActivity extends AppCompatActivity {
         } else if (usr.getTipoUsuario().equals("responsavel")) {
             i = new Intent(this, ConfiguracoesResponsavelActivity.class);
         } else {
-            i = new Intent(this, ConfiguracoesActivity.class);
+            i = new Intent(this, ConfiguracoesAlunoActivity.class);
         }
 
         i.putExtra("usr", usr);
