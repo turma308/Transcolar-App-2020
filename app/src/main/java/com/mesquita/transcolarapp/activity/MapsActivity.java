@@ -32,6 +32,9 @@ import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.Permissao;
 import com.mesquita.transcolarapp.factory.GeocodingFactory;
 import com.mesquita.transcolarapp.factory.RouteFactory;
+import com.mesquita.transcolarapp.model.Motorista;
+import com.mesquita.transcolarapp.model.Responsavel;
+import com.mesquita.transcolarapp.model.Usuario;
 import com.mesquita.transcolarapp.parser.DataParser;
 import com.mesquita.transcolarapp.parser.GeocodingParser;
 import com.mesquita.transcolarapp.utils.LocationUtil;
@@ -53,6 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Circle userPosition;
     private Polyline route;
     private List<LatLng> allPoints;
+    private Motorista motora;
 
     private LocationListener locationListener = new LocationListener() {
         @Override
@@ -123,6 +127,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 v.setEnabled(false);
             }
         });
+
+        //GET EXTRA...
+        motora = (Motorista) getIntent().getSerializableExtra("mot");
+
     }
 
     private void alertaValidacaoPermissao() {
@@ -194,8 +202,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Plot route on Map
     private void plotRouteOnMap() {
-        LatLng[] waypoints = new LatLng[1];
-        waypoints[0] = new LatLng(-30.0125608, -51.1508949);
+        LatLng[] waypoints = new LatLng[motora.getClientes().size()];
+        int z = 0;
+        for (Responsavel resp: motora.getClientes()) {
+            waypoints[z] = new LatLng(resp.getLatitude(), resp.getLongitude());
+            z++;
+        }
+
         LatLng myLatLngLocation = LocationUtil.getCurrentLocation(this);
         //Generate a route URL with waypoints
         String urlStr = RouteFactory.generateRouteWithWaypointsUrl(myLatLngLocation, new LatLng(-30.011869, -51.150223), waypoints, "driving", getString(R.string.google_maps_key));

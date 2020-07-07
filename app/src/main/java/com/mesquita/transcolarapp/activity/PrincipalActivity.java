@@ -29,6 +29,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.model.Motorista;
+import com.mesquita.transcolarapp.model.Responsavel;
 import com.mesquita.transcolarapp.model.Usuario;
 import com.mesquita.transcolarapp.services.TrackUserLocationService;
 
@@ -36,6 +37,7 @@ public class PrincipalActivity extends AppCompatActivity {
     private FirebaseAuth autenticacao;
     private TextView ola;
     private Usuario usr;
+    private Usuario aux;
     private Motorista mot;
     private TrackUserLocationService mService;
 
@@ -50,6 +52,7 @@ public class PrincipalActivity extends AppCompatActivity {
 
         usr = new Usuario();
         usr.setId(autenticacao.getUid());
+
         buscarUsuario();
     }
 
@@ -63,6 +66,9 @@ public class PrincipalActivity extends AppCompatActivity {
                 usr = dataSnapshot.getValue(Usuario.class);
                 ola.setText("Olá, " + usr.getNome());
 
+                if(usr.getTipoUsuario().equals("motorista")) {
+                    mot = buscarMotorista();
+                }
 
                 //Primeira implementação
                 //Utilizado para testes já que ainda não existe um método que inicia a ida da criança até a escola
@@ -84,9 +90,55 @@ public class PrincipalActivity extends AppCompatActivity {
         });
     }
 
-    //Realiza a conexão do serviço quando necessário.
-    //Futuramente deve ser movido para uma classe especifica de ações sobre o aluno
-    private ServiceConnection connection = new ServiceConnection() {
+    public Motorista buscarMotorista() {
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
+        final DatabaseReference motoristaRef = firebaseRef.child("motoristas").child(usr.getId());
+
+        motoristaRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                mot = snapshot.getValue(Motorista.class);
+                for (Responsavel r: mot.getClientes()) {
+                    buscarLatLng(r);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                mot = null;
+            }
+        });
+
+        return mot;
+    }
+
+    public void buscarLatLng(final Responsavel resp) {
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
+        Log.i("usuario - resp 0", resp.getId());
+
+        final DatabaseReference usuarioRef = firebaseRef.child("usuarios").child(resp.getId());
+
+        usuarioRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                aux = snapshot.getValue(Usuario.class);
+                resp.setLatitude(aux.getLatitude());
+                resp.setLongitude(aux.getLongitude());
+                Log.i("usuario - resp 0", resp.getLatitude().toString());
+                Log.i("usuario - resp 0", resp.getLongitude().toString());
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+                //Realiza a conexão do serviço quando necessário.
+                //Futuramente deve ser movido para uma classe especifica de ações sobre o aluno
+        private ServiceConnection connection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service)
@@ -132,6 +184,7 @@ public class PrincipalActivity extends AppCompatActivity {
 
     public void abrirMapa(View view) {
         Intent i = new Intent(this, MapsActivity.class);
+        i.putExtra("mot", mot);
         startActivity(i);
     }
 }
