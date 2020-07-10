@@ -1,5 +1,6 @@
 package com.mesquita.transcolarapp.model;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
@@ -17,6 +18,8 @@ public class Usuario implements Serializable {
     private String telefone;
     private String sexo;
     private String token;
+    private Double latitude;
+    private Double longitude;
 
     //TODO melhorar esta implementação
     private String tipoUsuario;
@@ -110,5 +113,21 @@ public class Usuario implements Serializable {
 
     public void setTipoUsuario(String tipoUsuario) {
         this.tipoUsuario = tipoUsuario;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }

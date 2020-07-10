@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.ConfiguracoesMotoristaActivity">
+    tools:context=".activity.ConfiguracoesAlunoActivity">
 
     <Button
         android:id="@+id/ButtonSalvar"
@@ -12,7 +12,7 @@
         android:layout_height="62dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/ic_baseline_check_24"
-        android:onClick="gravarMotorista"
+        android:onClick="gravarAluno"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/civFotoPerfil"
         app:layout_constraintTop_toTopOf="parent" />
@@ -137,39 +137,14 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayout5"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:orientation="horizontal"
-        android:paddingRight="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
-        tools:paddingLeft="16dp">
-
-        <EditText
-            android:id="@+id/etCEP"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="CEP"
-            android:inputType="textPersonName" />
-
-    </LinearLayout>
-
     <RadioGroup
         android:id="@+id/rdGroupSexo"
         android:layout_width="178dp"
         android:layout_height="74dp"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="144dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="32dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout5">
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4">
 
         <RadioButton
             android:id="@+id/rbMasculino"
@@ -190,13 +165,14 @@
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="33dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="12dp"
         android:gravity="right"
         android:text="Sexo:"
         android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/rdGroupSexo"
+        app:layout_constraintHorizontal_bias="0.431"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout5" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/civFotoPerfil"

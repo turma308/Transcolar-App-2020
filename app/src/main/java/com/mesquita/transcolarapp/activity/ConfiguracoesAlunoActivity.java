@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -22,16 +21,19 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.mesquita.transcolarapp.R;
 import com.mesquita.transcolarapp.config.ConfiguracaoFirebase;
 import com.mesquita.transcolarapp.config.Permissao;
 import com.mesquita.transcolarapp.config.Util;
-import com.mesquita.transcolarapp.model.Motorista;
+import com.mesquita.transcolarapp.model.Aluno;
 import com.mesquita.transcolarapp.model.Responsavel;
 import com.mesquita.transcolarapp.model.Usuario;
 
@@ -39,20 +41,23 @@ import java.io.ByteArrayOutputStream;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
+import static androidx.core.app.ActivityCompat.startActivityForResult;
 
-    private EditText        nome;
-    private EditText        endereco;
-    private EditText        CPF;
-    private EditText        telefone;
-    private EditText        CEP;
-    private RadioGroup      campoSexo;
+public class ConfiguracoesAlunoActivity extends AppCompatActivity {
+    private EditText    nome;
+    private EditText    endereco;
+    private EditText    CPF;
+    private EditText    telefone;
+    private RadioGroup  campoSexo;
+    private EditText  nomeResponsavel;
+    private EditText  cpfResponsavel;
     private CircleImageView fotoPerfil;
+
 
     private StorageReference storageReference;
 
     private Usuario usr;
-    private Motorista mtr;
+    private Aluno aln;
 
     private static final int SELECAO_CAMERA = 100;
     private static final int SELECAO_GALERIA = 200;
@@ -65,9 +70,9 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_configuracoes_motorista);
+        setContentView(R.layout.activity_configuracoes_alunos);
 
-        getSupportActionBar().setTitle("Configurações - Motorista");
+        getSupportActionBar().setTitle("Configurações - Aluno");
 
         storageReference = ConfiguracaoFirebase.getFirebaseStorage();
 
@@ -78,9 +83,10 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         endereco   = findViewById(R.id.etEndereco);
         CPF        = findViewById(R.id.etCPF);
         telefone   = findViewById(R.id.etTelefone);
-        CEP        = findViewById(R.id.etCEP);
         campoSexo  = findViewById(R.id.rdGroupSexo);
         fotoPerfil = findViewById(R.id.civFotoPerfil);
+//        nomeResponsavel = findViewById(R.id.etNomeResponsavel);
+//        cpfResponsavel = findViewById(R.id.etCpfResponsavel);
 
         //GET EXTRA...
         usr = (Usuario) getIntent().getSerializableExtra("usr");
@@ -89,12 +95,14 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
             endereco.setText(usr.getEndereco());
             CPF.setText(usr.getCpf());
             telefone.setText(usr.getTelefone());
-            CEP.setText(mtr.getCep());
+
+//            cpfResponsavel.setText(aln.getCpfResponsavel());
+//            nomeResponsavel.setText(aln.getNomeResponsavel());
 
             //TODO Aqui corrigir atribuição do sexo.
 
-            mtr = new Motorista();
-            mtr.setId(usr.getId());
+            //Instancia um Responsável
+            aln = buscaAluno(usr.getId());
 
             //Recupera a foto do usuário
             StorageReference imagemRef = storageReference
@@ -117,6 +125,30 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
         }
     }
+
+    private Aluno buscaAluno(String id) {
+        aln = new Aluno();
+        aln.setId(usr.getId());
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
+        final DatabaseReference alunoRef = firebaseRef.child("alunos").child(id);
+
+        alunoRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                aln = dataSnapshot.getValue(Aluno.class);
+                //TODO buscar os dados dos alunos
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        return aln;
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -144,7 +176,7 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                     case SELECAO_GALERIA:
                         Uri uriImagemSelec = data.getData();
 //                        ImageDecoder.Source source = ImageDecoder.createSource(getContentResolver(), uriImagemSelec);
-//                        imagem = ImageDecoder.decodeBitmap(source);
+//                       imagem = ImageDecoder.decodeBitmap(source);
                         break;
                 }
 
@@ -164,14 +196,14 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
                     uploadTask.addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                            Toast.makeText(ConfiguracoesAlunoActivity.this,
                                     "Erro ao fazer upload da foto.",
                                     Toast.LENGTH_LONG).show();
                         }
                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this,
+                            Toast.makeText(ConfiguracoesAlunoActivity.this,
                                     "Foto armazenada com sucesso.",
                                     Toast.LENGTH_LONG).show();
                         }
@@ -200,13 +232,14 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void gravarMotorista(View view) {
+    public void gravarAluno(View view) {
         String textoNome              = nome.getText().toString();
         String textoEndereco          = endereco.getText().toString();
         String textoCPF               = CPF.getText().toString();
         String textoTelefone          = telefone.getText().toString();
-        String textoCEP               = CEP.getText().toString();
         int itemRadioGroupSelecionado = campoSexo.getCheckedRadioButtonId();
+//        String textoNomeResponsavel = nomeResponsavel.getText().toString();
+//        String textoCpfResponsavel =    cpfResponsavel.getText().toString();
 
 
         //Validar se os campos foram preenchidos
@@ -218,67 +251,63 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
                     if(!isCampoVazio(textoTelefone)){
 
-                        if(!isCampoVazio(textoCEP)){
-
-                                if (itemRadioGroupSelecionado != -1){
-
-                                    RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
-                                    String textoSexo =  rbSexoSelecioando.getText().toString();
-
-                                    usr.setNome(textoNome);
-                                    usr.setEndereco(textoEndereco);
-                                    usr.setCpf(textoCPF);
-                                    usr.setTelefone(textoTelefone);
-                                    usr.setSexo(textoSexo);
-                                    mtr.setCep(textoCEP);
-
-                                    mockupClientes();
-
-                                    usr.salvar();
-                                    mtr.salvar();
+//                        if(!isCampoVazio(textoNomeResponsavel)){
+//
+//                            if(!isCampoVazio(textoCpfResponsavel)){
 
 
-                                    Util.esconderTeclado(view);
+                        if (itemRadioGroupSelecionado != -1){
 
-                                    Toast.makeText(ConfiguracoesMotoristaActivity.this,
-                                            "Dados salvos com sucesso!",
-                                            Toast.LENGTH_SHORT).show();
+                            RadioButton rbSexoSelecioando = findViewById(itemRadioGroupSelecionado);
+                            String textoSexo =  rbSexoSelecioando.getText().toString();
+                            usr.setNome(textoNome);
+                            usr.setEndereco(textoEndereco);
+                            usr.setCpf(textoCPF);
+                            usr.setTelefone(textoTelefone);
+                            usr.setSexo(textoSexo);
+//                            aln.setCpfResponsavel(textoCpfResponsavel);
+//                            aln.setNomeResponsavel(textoNomeResponsavel);
 
-                                }else{
-                                    Toast.makeText(ConfiguracoesMotoristaActivity.this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
-                                }
+
+
+                            usr.salvar();
+                            aln.salvar();
+
+                            Util.esconderTeclado(view);
+
+                            Toast.makeText(ConfiguracoesAlunoActivity.this,
+                                    "Dados salvos com sucesso!",
+                                    Toast.LENGTH_SHORT).show();
+
                         }else{
-                            Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o CEP", Toast.LENGTH_SHORT).show();
-                            CEP.requestFocus();
+                            Toast.makeText(ConfiguracoesAlunoActivity.this, "Selecione o sexo", Toast.LENGTH_SHORT).show();
                         }
+//                    }else{
+//                        Toast.makeText(ConfiguracoesAlunoActivity.this, "Preencha o cpf responsavel", Toast.LENGTH_SHORT).show();
+//                        cpfResponsavel.requestFocus();
+//                    }
+//                        }else{
+//                            Toast.makeText(ConfiguracoesAlunoActivity.this, "Selecione o nome responsável", Toast.LENGTH_SHORT).show();
+//                            nomeResponsavel.requestFocus();
+//                        }
                     }else{
-                        Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o telefone", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ConfiguracoesAlunoActivity.this, "Preencha o telefone", Toast.LENGTH_SHORT).show();
                         telefone.requestFocus();
                     }
                 }else{
-                        Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o CPF", Toast.LENGTH_SHORT).show();
-                        CPF.requestFocus();
+                    Toast.makeText(ConfiguracoesAlunoActivity.this, "Preencha o CPF", Toast.LENGTH_SHORT).show();
+                    CPF.requestFocus();
                 }
 
             } else {
-                    Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o endereço", Toast.LENGTH_SHORT).show();
-                    endereco.requestFocus();
+                Toast.makeText(ConfiguracoesAlunoActivity.this, "Preencha o endereço", Toast.LENGTH_SHORT).show();
+                endereco.requestFocus();
             }
 
         } else {
-            Toast.makeText(ConfiguracoesMotoristaActivity.this, "Preencha o Nome", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ConfiguracoesAlunoActivity.this, "Preencha o Nome", Toast.LENGTH_SHORT).show();
             nome.requestFocus();
         }
-    }
-
-    private void mockupClientes() {
-        Responsavel r = new Responsavel();
-        r.setId("stfqoPUunJWUdVpsGTGEQz4buC43"); //Pai do Pedrinho
-        mtr.getClientes().add(r);
-
-        r = new Responsavel();
-        r.setId("l3tVemCb2nQUzBxvI3bcDgO3E0I2"); //Mãe da Claudinha
-        mtr.getClientes().add(r);
     }
 
     private boolean isCampoVazio(String valor){
@@ -304,4 +333,8 @@ public class ConfiguracoesMotoristaActivity extends AppCompatActivity {
 
     }
 
+
+
 }
+
+
