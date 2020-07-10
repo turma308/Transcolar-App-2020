@@ -113,8 +113,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Permissao.validarPermissoes(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, this, 1);
-
         setContentView(R.layout.activity_maps);
         findViewById(R.id.route_btn).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,6 +121,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 v.setEnabled(false);
             }
         });
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            Permissao.validarPermissoes(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, this, 1);
+        }
+        else
+        {
+            startMap();
+        }
     }
 
     private void alertaValidacaoPermissao() {
@@ -150,33 +156,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 alertaValidacaoPermissao();
             }
             else {
-                String url = GeocodingFactory.generateGeocodingUrl("91360-001", 77, LocationUtil.getCurrentLocation(this), getString(R.string.google_maps_key));
-                try {
-                    //Get json from API
-                    String response = new NetworkUtils().execute(url).get();
-                    GeocodingParser parser = new GeocodingParser();
-                    JSONObject jsonObject = new JSONObject(response);
-                    LatLng location = parser.parse(jsonObject);
-                } catch (Exception e)
-                {
-
-                }
-
-                //Obtain the LocationManager and get notified of location updates
-                LocationManager manager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
-                Criteria mCriteria = new Criteria();
-                String bestProvider = String.valueOf(manager.getBestProvider(mCriteria, true));
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                manager.requestLocationUpdates(bestProvider, 5, 1, locationListener);
-
-                // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(this);
+                startMap();
             }
 
     }
+
+    private void startMap()
+    {
+        String url = GeocodingFactory.generateGeocodingUrl("91360-001", 77, LocationUtil.getCurrentLocation(this), getString(R.string.google_maps_key));
+        try {
+            //Get json from API
+            String response = new NetworkUtils().execute(url).get();
+            GeocodingParser parser = new GeocodingParser();
+            JSONObject jsonObject = new JSONObject(response);
+            LatLng location = parser.parse(jsonObject);
+        } catch (Exception e)  {  }
+
+        //Obtain the LocationManager and get notified of location updates
+        LocationManager manager = (LocationManager) this.getSystemService(this.LOCATION_SERVICE);
+        Criteria mCriteria = new Criteria();
+        String bestProvider = String.valueOf(manager.getBestProvider(mCriteria, true));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        manager.requestLocationUpdates(bestProvider, 5, 1, locationListener);
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
