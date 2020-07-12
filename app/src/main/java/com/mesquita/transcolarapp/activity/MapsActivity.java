@@ -310,6 +310,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 mMap.setMyLocationEnabled(false);
                 desenharEscola(mySchoolLocation);
+                desenharWayPoints(waypoints);
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLngLocation, mMap.getCameraPosition().zoom));
                 hasStartedRoute = true;
             } catch (Exception e) {
@@ -324,7 +325,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void desenharEscola(LatLng schoolLocation){
         mMap.addMarker(new MarkerOptions().position(schoolLocation)
-                                            .title("Escola")
+                                            .title("Escola Mesquita")
         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_school_64px)));
+    }
+
+    private void desenharWayPoints(LatLng[] waypoints){
+        for (int i=0; i<waypoints.length; i++) {
+            mMap.addMarker(new MarkerOptions().position(waypoints[i])
+                    .title("Casa " + i)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_house_64px)));
+        }
     }
 }
