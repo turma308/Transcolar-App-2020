@@ -2,7 +2,6 @@ package com.mesquita.transcolarapp.activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,7 +10,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.Toast;
 
@@ -23,9 +21,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
@@ -36,7 +36,6 @@ import com.mesquita.transcolarapp.factory.GeocodingFactory;
 import com.mesquita.transcolarapp.factory.RouteFactory;
 import com.mesquita.transcolarapp.model.Motorista;
 import com.mesquita.transcolarapp.model.Responsavel;
-import com.mesquita.transcolarapp.model.Usuario;
 import com.mesquita.transcolarapp.parser.DataParser;
 import com.mesquita.transcolarapp.parser.GeocodingParser;
 import com.mesquita.transcolarapp.utils.LocationUtil;
@@ -163,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        manager.requestLocationUpdates(bestProvider, 5000, 0, locationListener);
+        manager.requestLocationUpdates(bestProvider, 3000, 0, locationListener);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -224,8 +223,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         LatLng myLatLngLocation = LocationUtil.getCurrentLocation(this);
+        LatLng mySchoolLocation = new LatLng(-30.0116, -51.1536);
+
         //Generate a route URL with waypoints
-        String urlStr = RouteFactory.generateRouteWithWaypointsUrl(myLatLngLocation, new LatLng(-30.0116, -51.1536), waypoints, "driving", getString(R.string.google_maps_key));
+        String urlStr = RouteFactory.generateRouteWithWaypointsUrl(myLatLngLocation, mySchoolLocation, waypoints, "driving", getString(R.string.google_maps_key));
 
         try {
             //Get json from API
@@ -308,6 +309,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     return;
                 }
                 mMap.setMyLocationEnabled(false);
+                desenharEscola(mySchoolLocation);
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLngLocation, mMap.getCameraPosition().zoom));
                 hasStartedRoute = true;
             } catch (Exception e) {
@@ -320,4 +322,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    private void desenharEscola(LatLng schoolLocation){
+        mMap.addMarker(new MarkerOptions().position(schoolLocation)
+                                            .title("Escola")
+        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_school_64px)));
+    }
 }
