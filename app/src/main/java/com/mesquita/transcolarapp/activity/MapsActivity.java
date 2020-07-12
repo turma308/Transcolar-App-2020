@@ -2,6 +2,7 @@ package com.mesquita.transcolarapp.activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -61,31 +63,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
+            Toast.makeText(getApplicationContext(), "Mudou localização", Toast.LENGTH_SHORT).show();
+
             if (hasStartedRoute) {
                 LatLng myLatLngLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                Toast.makeText(getApplicationContext(), "Mudou localização: " + location.getLatitude(), Toast.LENGTH_SHORT).show();
 
                 if (!PolyUtil.isLocationOnPath(myLatLngLocation, allPoints, false, 10)) {
+                    Toast.makeText(getApplicationContext(), "fora da rota", Toast.LENGTH_SHORT).show();
                     plotRouteOnMap();
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLngLocation, mMap.getCameraPosition().zoom));
                 } else {
+                    Toast.makeText(getApplicationContext(), "dentro da rota", Toast.LENGTH_SHORT).show();
                     LatLng myNearestLocation = PolylineUtil.nearestPositionInLine(myLatLngLocation, allPoints);
                     final int positionStartInList = allPoints.indexOf(userPosition.getCenter());
                     final int finalPosition = allPoints.indexOf(myNearestLocation);
-                    //userPosition.setCenter(myNearestLocation);
-                    final Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        int currentPosition = positionStartInList;
-
-                        @Override
-                        public void run() {
-                            userPosition.setCenter(allPoints.get(currentPosition++));
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(allPoints.get(currentPosition), mMap.getCameraPosition().zoom), 400, null);
-                            if (currentPosition != finalPosition) {
-                                handler.postDelayed(this, 50);
-                            }
-                        }
-                    }, 50);
-                    //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myNearestLocation, mMap.getCameraPosition().zoom));
+                    userPosition.setCenter(myNearestLocation);
+//                    final Handler handler = new Handler();
+//                    handler.postDelayed(new Runnable() {
+//                        int currentPosition = positionStartInList;
+//
+//                        @Override
+//                        public void run() {
+//                            userPosition.setCenter(allPoints.get(currentPosition++));
+//                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(allPoints.get(currentPosition), mMap.getCameraPosition().zoom), 400, null);
+//                            if (currentPosition != finalPosition) {
+//                                handler.postDelayed(this, 50);
+//                            }
+//                        }
+//                    }, 50);
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myNearestLocation, mMap.getCameraPosition().zoom));
                 }
             }
         }
@@ -156,7 +163,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        manager.requestLocationUpdates(bestProvider, 5, 1, locationListener);
+        manager.requestLocationUpdates(bestProvider, 5000, 0, locationListener);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -218,7 +225,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LatLng myLatLngLocation = LocationUtil.getCurrentLocation(this);
         //Generate a route URL with waypoints
-        String urlStr = RouteFactory.generateRouteWithWaypointsUrl(myLatLngLocation, new LatLng(-30.011869, -51.150223), waypoints, "driving", getString(R.string.google_maps_key));
+        String urlStr = RouteFactory.generateRouteWithWaypointsUrl(myLatLngLocation, new LatLng(-30.0116, -51.1536), waypoints, "driving", getString(R.string.google_maps_key));
 
         try {
             //Get json from API
