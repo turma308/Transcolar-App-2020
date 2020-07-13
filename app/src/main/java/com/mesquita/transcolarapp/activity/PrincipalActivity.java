@@ -68,6 +68,8 @@ public class PrincipalActivity extends AppCompatActivity {
 
                 if(usr.getTipoUsuario().equals("motorista")) {
                     mot = buscarMotorista();
+                } else {
+                    findViewById(R.id.btnAbrirMapa).setVisibility(View.INVISIBLE);
                 }
 
                 //Primeira implementação
