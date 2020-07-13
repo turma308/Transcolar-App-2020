@@ -62,18 +62,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
-            Toast.makeText(getApplicationContext(), "Mudou localização", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(), "Mudou localização", Toast.LENGTH_SHORT).show();
 
             if (hasStartedRoute) {
                 LatLng myLatLngLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                Toast.makeText(getApplicationContext(), "Mudou localização: " + location.getLatitude(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "Mudou localização: " + location.getLatitude(), Toast.LENGTH_SHORT).show();
 
                 if (!PolyUtil.isLocationOnPath(myLatLngLocation, allPoints, false, 10)) {
-                    Toast.makeText(getApplicationContext(), "fora da rota", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), "fora da rota", Toast.LENGTH_SHORT).show();
                     plotRouteOnMap();
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLngLocation, mMap.getCameraPosition().zoom));
                 } else {
-                    Toast.makeText(getApplicationContext(), "dentro da rota", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getApplicationContext(), "dentro da rota", Toast.LENGTH_SHORT).show();
                     LatLng myNearestLocation = PolylineUtil.nearestPositionInLine(myLatLngLocation, allPoints);
                     final int positionStartInList = allPoints.indexOf(userPosition.getCenter());
                     final int finalPosition = allPoints.indexOf(myNearestLocation);
@@ -124,13 +124,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_maps);
-        findViewById(R.id.route_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                plotRouteOnMap();
-                v.setEnabled(false);
-            }
-        });
+        if(motora == null)
+        {
+            findViewById(R.id.route_btn).setVisibility(View.GONE);
+            Toast.makeText(this, "Aqui você poderá saber onde seu(s) filhos(as) estão!", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            findViewById(R.id.route_btn).setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    if (motora != null)
+                    {
+                        plotRouteOnMap();
+                        v.setEnabled(false);
+                    }
+                }
+            });
+        }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Permissao.validarPermissoes(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, this, 1);
         }
